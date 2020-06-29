@@ -1,0 +1,75 @@
+<%#= render 'spree/checkout/payment/gateway', payment_method: payment_method %>
+
+<input type="hidden" id="adyenCardNumber" name="payment_source[8][number]" value="">
+<input type="hidden" id="adyenCardExpiryMonth" name="payment_source[8][month]" value="">
+<input type="hidden" id="adyenCardExpiryYear" name="payment_source[8][year]" value="">
+<input type="hidden" id="adyenCardCvv" name="payment_source[8][verification_value]" value="">
+<input type="hidden" id="adyenCcType" name="payment_source[8][cc_type]" value="">
+<input type="hidden" id="adyenHolderName" name="payment_source[8][name]" value="">
+<div id="dropin-container"></div>
+<% payment_methods = payment_method.provider.adyen_payment_methods(payment_method) %>
+
+<script
+  src="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.8.1/adyen.js"
+  integrity="sha384-rGkZxBRhUfCECwNuNrllGf8dOpeUsKTMqczAkphoWMne67C32+na/29lUGT3HVOB"
+  crossorigin="anonymous">
+</script>
+
+<link
+  rel="stylesheet"
+  href="https://checkoutshopper-test.adyen.com/checkoutshopper/sdk/3.8.1/adyen.css"
+  integrity="sha384-y1lKqffK5z+ENzddmGIfP3bcMRobxkjDt/9lyPAvV9H3JXbJYxCSD6L8TdyRMCGM"
+  crossorigin="anonymous"
+>
+
+<script>
+  $(function() {
+    $('#order_payments_attributes__payment_method_id_<%= payment_method.id %>').click(function (e) {
+      if($("li.adyen-checkout__payment-method").length > 0){
+        $("li.adyen-checkout__payment-method").css("display", "block");
+      }
+    });
+  });
+
+  const configuration = {
+    paymentMethodsResponse: <%= raw(payment_methods.response.to_json) %>,
+    originKey: "pub.v2.8015922272572316.aHR0cDovL2xvY2FsaG9zdDozMDAw.d7O7qwM7NF_Q1p9CIrGiLW00oZLsTXJBp7eisAd5aF0",
+    locale: "en-US",
+    environment: "<%= payment_method.preferred_server.to_sym %>",
+    onSubmit: (state, dropin) => {
+      console.log("state.data.paymentMethod");
+      pm = state.data.paymentMethod;
+      $("#adyenCardNumber").val(pm.encryptedCardNumber);
+      $("#adyenCardExpiryMonth").val(pm.encryptedExpiryMonth);
+      $("#adyenCardExpiryYear").val(pm.encryptedExpiryYear);
+      $("#adyenCardCvv").val(pm.encryptedSecurityCode);
+      $("#adyenHolderName").val(pm.holderName);
+      $("#adyenCcType").val("visa");
+      $("#checkout_form_payment").submit();
+    },
+    onAdditionalDetails: (state, dropin) => {
+      makeDetailsCall(state.data)
+        .then(response => {
+          if (response.action) {
+            dropin.handleAction(response.action);
+        } else {
+          showFinalResult(response);
+        }
+      })
+      .catch(error => {
+        throw Error(error);
+      });
+    },
+    paymentMethodsConfiguration: {
+      card: {
+        hasHolderName: true,
+        holderNameRequired: true,
+        enableStoreDetails: true,
+        hideCVC: false,
+        name: 'Credit or debit card'
+      }
+    }
+  };
+  const checkout = new AdyenCheckout(configuration);
+  const dropin = checkout.create('dropin').mount('#dropin-container');
+</script>
