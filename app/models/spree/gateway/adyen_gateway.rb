@@ -1,10 +1,16 @@
 module Spree
   class Gateway::AdyenGateway < Gateway
+    # checkout servcice credentials
     preference :public_key, :string
     preference :api_username, :string
     preference :api_password, :string
     preference :merchant_account, :string
-    preference :client_key, :string
+    preference :client_key, :string # term: origin key
+
+    # marketpay servcice credentials
+    preference :ws_user, :string
+    preference :ws_password, :string
+    preference :api_key, :string
 
     def auto_capture?
       false
@@ -84,6 +90,7 @@ module Spree
       options[:channel] = "web"
       options[:amount] = money
       options[:billing_address] = gateway_options[:billing_address]
+      options[:splits] = gateway_options[:splits]
 
       store_url = gateway_options[:store_url]
       options[:site_origin] = if store_url && store_url["https://"].nil?
