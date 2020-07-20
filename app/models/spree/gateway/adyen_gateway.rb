@@ -5,6 +5,7 @@ module Spree
     preference :api_username, :string
     preference :api_password, :string
     preference :merchant_account, :string
+    preference :live_url_prefix, :string
     # configured for each store (removed from payment method)
     # preference :client_key, :string # term: origin key
 

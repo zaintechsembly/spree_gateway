@@ -1,5 +1,5 @@
 module SpreeGateway
   def self.version
-    '3.7.9'
+    '3.8.0'
   end
 end
