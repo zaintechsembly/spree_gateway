@@ -15,7 +15,7 @@
     </tr>
     <tr>
       <th><%= Spree.t(:expiration) %>:</th>
-      <td><%= payment.source.card_details['expiryDate'] %></td>
+      <td><%= payment.source.card_details['expiryDate'] if payment.source.card_details.present? %></td>
     </tr>
   </table>
 </fieldset>
