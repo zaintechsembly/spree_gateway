@@ -2,6 +2,7 @@ module Spree
   class Gateway::StripeGateway < Gateway
     preference :secret_key, :string
     preference :publishable_key, :string
+    preference :client_key, :string
 
     CARD_TYPE_MAPPING = {
       'American Express' => 'american_express',
@@ -98,6 +99,11 @@ module Spree
       options[:description] = "Spree Order ID: #{gateway_options[:order_id]}"
       options[:currency] = gateway_options[:currency]
       options[:application] = app_info
+      # options[:stripe_account] = gateway_options[:stripe_account]
+      options[:destination] = gateway_options[:stripe_account]
+      options[:destination_amount] = money
+      options[:on_behalf_of] = gateway_options[:stripe_account]
+      options[:application_fee] = gateway_options[:application_fee]
 
       if customer = creditcard.gateway_customer_profile_id
         options[:customer] = customer
