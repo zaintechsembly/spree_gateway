@@ -4,8 +4,21 @@ module ActiveMerchant
       private
 
       def headers(options = {})
-        headers = super
+        # headers = super
+        # being too lazy here, not me but spree (DUPLICATE just copy/paste ActiveMerchant)
+        key = options[:key] || @api_key
+        idempotency_key = options[:idempotency_key]
+
+        headers = {
+          'Authorization' => 'Basic ' + Base64.strict_encode64(key.to_s + ':').strip,
+          'User-Agent' => "Stripe/v1 ActiveMerchantBindings/#{ActiveMerchant::VERSION}",
+          'Stripe-Version' => api_version(options),
+          'X-Stripe-Client-User-Agent' => stripe_client_user_agent(options),
+          'X-Stripe-Client-User-Metadata' => {ip: options[:ip]}.to_json
+        }
+
         headers['User-Agent'] = headers['X-Stripe-Client-User-Agent']
+        headers['Idempotency-Key'] = idempotency_key if idempotency_key
         headers['Stripe-Account'] = options[:stripe_account] if options[:stripe_account]
         headers
       end
