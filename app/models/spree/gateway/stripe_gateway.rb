@@ -96,7 +96,7 @@ module Spree
 
     def options_for_purchase_or_auth(money, creditcard, gateway_options)
       options = {}
-      options[:description] = "Spree Order ID: #{gateway_options[:order_id]}"
+      options[:description] = gateway_options[:order_id]
       options[:currency] = gateway_options[:currency]
       options[:application] = app_info
       # options[:stripe_account] = gateway_options[:stripe_account]

@@ -86,7 +86,7 @@ module Spree
     def options_for_purchase_or_auth(money, creditcard, gateway_options)
       options = { recurring: false }
       reference = gateway_options[:order_id]
-      options[:order_id] = "Spree Order ID: #{reference}"
+      options[:order_id] = reference
       options[:currency] = gateway_options[:currency]
       options[:return_url] = "api/v2/storefront/checkout?order_token=#{gateway_options[:order_token]}"
       options[:channel] = "web"
