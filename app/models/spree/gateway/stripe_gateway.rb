@@ -101,7 +101,7 @@ module Spree
       options[:application] = app_info
       # options[:stripe_account] = gateway_options[:stripe_account]
       options[:destination] = gateway_options[:stripe_account]
-      options[:destination_amount] = money
+      options[:destination_amount] = gateway_options[:destination_amount]
       options[:on_behalf_of] = gateway_options[:stripe_account]
       options[:application_fee] = gateway_options[:application_fee]
 
