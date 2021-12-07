@@ -3,6 +3,8 @@ module Spree
     preference :secret_key, :string
     preference :publishable_key, :string
     preference :client_key, :string
+    preference :connected_account_id, :string
+    preference :connected_account_type, :string
 
     CARD_TYPE_MAPPING = {
       'American Express' => 'american_express',
@@ -55,9 +57,11 @@ module Spree
 
     def create_profile(payment)
       return unless payment.source.gateway_customer_profile_id.nil?
+
       options = {
         email: payment.order.email,
         login: preferred_secret_key,
+        stripe_account: (payment.payment_method.standard? ? payment.payment_method.send(:stripe_connected_account) : nil)
       }.merge! address_for(payment)
 
       source = update_source!(payment.source)
@@ -99,10 +103,10 @@ module Spree
       options[:description] = gateway_options[:order_reference_id]
       options[:currency] = gateway_options[:currency]
       options[:application] = app_info
-      # options[:stripe_account] = gateway_options[:stripe_account]
-      options[:destination] = gateway_options[:stripe_account]
+      options[:stripe_account] = gateway_options[:stripe_account]
+      options[:destination] = gateway_options[:destination]
       options[:destination_amount] = gateway_options[:destination_amount]
-      options[:on_behalf_of] = gateway_options[:stripe_account]
+      options[:on_behalf_of] = gateway_options[:on_behalf_of]
       options[:application_fee] = gateway_options[:application_fee]
 
       if customer = creditcard.gateway_customer_profile_id

@@ -16,7 +16,6 @@ module ActiveMerchant
           'X-Stripe-Client-User-Agent' => stripe_client_user_agent(options),
           'X-Stripe-Client-User-Metadata' => {ip: options[:ip]}.to_json
         }
-
         headers['User-Agent'] = headers['X-Stripe-Client-User-Agent']
         headers['Idempotency-Key'] = idempotency_key if idempotency_key
         headers['Stripe-Account'] = options[:stripe_account] if options[:stripe_account]
@@ -29,6 +28,8 @@ module ActiveMerchant
           post[:transfer_data][:destination] = options[:destination]
           post[:transfer_data][:amount] = (options[:destination_amount] - options[:application_fee].to_i) if options[:destination_amount]
         end
+
+        post[:on_behalf_of] = options[:on_behalf_of] if options[:on_behalf_of]
         # FIXME it's here because active merchant billing adds emv checks before adding application_fee
         post[:application_fee] = options[:application_fee] if options[:application_fee]
       end
