@@ -3,8 +3,6 @@ module Spree
     preference :secret_key, :string
     preference :publishable_key, :string
     preference :client_key, :string
-    preference :connected_account_id, :string
-    preference :connected_account_type, :string
 
     CARD_TYPE_MAPPING = {
       'American Express' => 'american_express',
@@ -61,7 +59,7 @@ module Spree
       options = {
         email: payment.order.email,
         login: preferred_secret_key,
-        stripe_account: (payment.payment_method.standard? ? payment.payment_method.send(:stripe_connected_account) : nil)
+        stripe_account: payment.order.store.stripe_standard_account_id.presence
       }.merge! address_for(payment)
 
       source = update_source!(payment.source)
