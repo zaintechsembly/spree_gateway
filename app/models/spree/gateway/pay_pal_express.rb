@@ -6,7 +6,6 @@ module Spree
     preference :landing_page, :string, default: 'Billing'
     preference :logourl, :string, default: ''
 
-
     def auto_capture?
       true
     end
