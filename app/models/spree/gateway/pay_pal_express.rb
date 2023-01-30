@@ -1,10 +1,12 @@
 module Spree
   class Gateway::PayPalExpress < Gateway
     preference :client_id, :string
+    preference :client_secret, :string
     preference :server, :string, default: 'sandbox'
     preference :solution, :string, default: 'Mark'
     preference :landing_page, :string, default: 'Billing'
     preference :logourl, :string, default: ''
+    preference :test_mode, :boolean, default: true
 
     def auto_capture?
       true
