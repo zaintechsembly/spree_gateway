@@ -21,6 +21,20 @@ module Spree
       'stripe'
     end
 
+    def auto_capture?
+      true
+    end
+
+    def manual_capture? order_token
+      return false # resrited for now
+      order = Spree::Order.find_by(token: order_token)
+      order.store.stripe_gateway.present? && order.payment_intent_id.present? 
+    end
+
+    def supports?(source)
+      true
+    end
+
     def provider_class
       ActiveMerchant::Billing::StripeGateway
     end
@@ -35,6 +49,20 @@ module Spree
 
     def authorize(money, creditcard, gateway_options)
       provider.authorize(*options_for_purchase_or_auth(money, creditcard, gateway_options))
+    end
+
+    def manual_capture(amount, gateway_options)
+      # Capture amount
+      order = Spree::Order.find_by(token: gateway_options[:order_token])
+      Stripe.api_key = preferred_secret_key
+      Stripe.stripe_account = order.store.send(:stripe_connected_account)
+      begin
+        Stripe::PaymentIntent.capture(order.payment_intent_id)
+        { success: true, message: 'Transaction approved' }
+      rescue => exception
+        Rails.logger.error(exception.message)
+        { success: false, message: exception.message }
+      end
     end
 
     def capture(money, response_code, gateway_options)
@@ -54,35 +82,18 @@ module Spree
     end
 
     def create_profile(payment)
-      return unless payment.source.gateway_customer_profile_id.nil?
+      stripe_customer = Stripe::Customer.create({ name: payment.order.customer_name, email: payment.order.email })
+      payment_intent_attrs = { customer: stripe_customer.id }
 
-      options = {
-        email: payment.order.email,
-        login: preferred_secret_key
-      }.merge! address_for(payment)
+      stripe_payment = order.payments.joins(:payment_method)
+                            .where('spree_payment_methods.type = ?', 'Spree::Gateway::StripeGateway')
+                            .completed.last
 
-      source = update_source!(payment.source)
-      if source.gateway_payment_profile_id.present?
-        creditcard = source.gateway_payment_profile_id
-      else
-        creditcard = source
-      end
+      # update description if successfully paid
+      payment_intent_attrs[:description] = "Techsembly Order ID: #{order.number}-#{stripe_payment.number}" if stripe_payment.present?
 
-      response = provider.store(creditcard, options)
-      if response.success?
-        cc_type=payment.source.cc_type
-        response_cc_type = response.params['sources']['data'].first['brand']
-        cc_type = CARD_TYPE_MAPPING[response_cc_type] if CARD_TYPE_MAPPING.include?(response_cc_type)
+      Stripe::PaymentIntent.update(order.payment_intent_id, payment_intent_attrs)
 
-        payment.source.update!({
-          cc_type: cc_type, # side-effect of update_source!
-          gateway_customer_profile_id: response.params['id'],
-          gateway_payment_profile_id: response.params['default_source'] || response.params['default_card']
-        })
-
-      else
-        payment.send(:gateway_error, response.message)
-      end
     end
 
     private
