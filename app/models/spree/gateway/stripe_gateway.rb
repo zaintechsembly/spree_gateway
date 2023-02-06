@@ -81,7 +81,7 @@ module Spree
 
       options = {
         email: payment.order.email,
-        login: preferred_secret_key,
+        login: preferred_secret_key
       }.merge! address_for(payment)
 
       source = update_source!(payment.source)
