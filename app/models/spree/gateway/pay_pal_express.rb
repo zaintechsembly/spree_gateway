@@ -1,7 +1,7 @@
 module Spree
   class Gateway::PayPalExpress < Gateway
 
-    include PaypalExpress
+    include PaypalCapture
     preference :client_id, :string
     preference :client_secret, :string
     preference :server, :string, default: 'sandbox'
@@ -14,8 +14,7 @@ module Spree
       true
     end
 
-    def manual_capture(amount, gateway_options)
-      payment = gateway_options[:payment]
+    def manual_capture(amount, payment, gateway_options)
       paypal_capture_payment(payment)
     end
 

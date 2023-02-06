@@ -1,5 +1,5 @@
 module Spree
-  module Gateway::PaypalExpress
+  module Gateway::PaypalCapture
 
     PAYPAL_TEST_API = "https://api-m.sandbox.paypal.com"
     PAYPAL_LIVE_API = "https://api-m.paypal.com"
