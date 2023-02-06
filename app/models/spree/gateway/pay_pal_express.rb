@@ -16,7 +16,6 @@ module Spree
 
     def manual_capture(amount, gateway_options)
       payment = gateway_options[:payment]
-      return {success: false, message: 'source not found'} if payment&.source.blank?
       paypal_capture_payment(payment)
     end
 

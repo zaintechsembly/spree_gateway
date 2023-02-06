@@ -5,6 +5,7 @@ module Spree
     PAYPAL_LIVE_API = "https://api-m.paypal.com"
 
     def paypal_capture_payment(payment)
+      return source_not_found if payment&.source.blank?
       @payment = payment
       @auth = authorization
       capture_order
@@ -13,6 +14,10 @@ module Spree
     private
     def paypal_api
       preferred_test_mode ? PAYPAL_TEST_API : PAYPAL_LIVE_API
+    end
+
+    def source_not_found
+      {success: false, message: 'source not found'}
     end
 
     def capture_order
