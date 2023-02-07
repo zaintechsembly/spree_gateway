@@ -26,11 +26,11 @@ module Spree
 
     def capture_order
       response = HTTParty.post("#{paypal_api}/v2/payments/authorizations/#{@source.transaction_id}/capture", 
-              headers: {
-                "Content-Type": 'application/json',
-                "Authorization": "Bearer #{ @auth['access_token'] }"
-              }
-            )
+                  headers: {
+                    "Content-Type": 'application/json',
+                    "Authorization": "Bearer #{ @auth['access_token'] }"
+                  }
+                )
       json_response(response.message, response.success?, response)
     rescue => e
       Rails.logger.error(e.message)
@@ -40,12 +40,12 @@ module Spree
     def authorization
       basicAuth = Base64.strict_encode64("#{ preferred_client_id }:#{ preferred_client_secret }")
       response = HTTParty.post("#{paypal_api}/v1/oauth2/token/", 
-          headers: {
-            "Content-Type": 'application/x-www-form-urlencoded',
-            "Authorization": "Basic #{ basicAuth }"
-          },
-          body: "grant_type=client_credentials"
-        )
+                  headers: {
+                    "Content-Type": 'application/x-www-form-urlencoded',
+                    "Authorization": "Basic #{ basicAuth }"
+                  },
+                  body: "grant_type=client_credentials"
+                )
       response.parsed_response
     rescue => e
       Rails.logger.error(e.message)
