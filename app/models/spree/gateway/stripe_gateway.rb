@@ -37,6 +37,19 @@ module Spree
       provider.authorize(*options_for_purchase_or_auth(money, creditcard, gateway_options))
     end
 
+    def manual_capture(amount, source, gateway_options)
+      # Capture amount
+      Stripe.api_key = preferred_secret_key
+      Stripe.stripe_account = gateway_options[:stripe_connected_account]
+      begin
+        Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
+        { success: true, message: 'Transaction approved' }
+      rescue => exception
+        Rails.logger.error(exception.message)
+        { success: false, message: exception.message }
+      end
+    end
+
     def capture(money, response_code, gateway_options)
       provider.capture(money, response_code, gateway_options)
     end
@@ -51,6 +64,14 @@ module Spree
 
     def cancel(response_code)
       provider.void(response_code, {})
+    end
+
+    def create_manual_profile(gateway_options)
+      stripe_customer = Stripe::Customer.create({ name: gateway_options[:customer_name], email: gateway_options[:email] })
+      payment_intent_attrs = { customer: stripe_customer.id }
+      # update description if successfully paid
+      payment_intent_attrs[:description] = gateway_options[:order_reference_id]
+      Stripe::PaymentIntent.update(gateway_options[:payment_intent_id], payment_intent_attrs)
     end
 
     def create_profile(payment)
