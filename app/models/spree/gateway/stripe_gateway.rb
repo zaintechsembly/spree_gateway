@@ -42,7 +42,7 @@ module Spree
       Stripe.api_key = preferred_secret_key
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
       begin
-        Stripe::PaymentIntent.capture(payment.order.payment_intent_id)
+        Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
         { success: true, message: 'Transaction approved' }
       rescue => exception
         Rails.logger.error(exception.message)
@@ -71,7 +71,7 @@ module Spree
       payment_intent_attrs = { customer: stripe_customer.id }
       # update description if successfully paid
       payment_intent_attrs[:description] = gateway_options[:order_reference_id] if stripe_payment.present?
-      Stripe::PaymentIntent.update(payment.order.payment_intent_id, payment_intent_attrs)
+      Stripe::PaymentIntent.update(gateway_options[:payment_intent_id], payment_intent_attrs)
     end
 
     def create_profile(payment)

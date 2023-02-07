@@ -4,9 +4,9 @@ module Spree
     PAYPAL_TEST_API = "https://api-m.sandbox.paypal.com"
     PAYPAL_LIVE_API = "https://api-m.paypal.com"
 
-    def paypal_capture_payment(payment)
-      return source_not_found if payment&.source.blank?
-      @payment = payment
+    def paypal_capture_payment(source)
+      return source_not_found if source.blank?
+      @source = source
       @auth = authorization
       capture_order
     end
@@ -21,7 +21,7 @@ module Spree
     end
 
     def capture_order
-      response = HTTParty.post("#{paypal_api}/v2/payments/authorizations/#{@payment.source.transaction_id}/capture", 
+      response = HTTParty.post("#{paypal_api}/v2/payments/authorizations/#{@source.transaction_id}/capture", 
               headers: {
                 "Content-Type": 'application/json',
                 "Authorization": "Bearer #{ @auth['access_token'] }"
