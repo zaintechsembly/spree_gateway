@@ -37,7 +37,7 @@ module Spree
       provider.authorize(*options_for_purchase_or_auth(money, creditcard, gateway_options))
     end
 
-    def manual_capture(amount, payment, gateway_options)
+    def manual_capture(amount, source, gateway_options)
       # Capture amount
       Stripe.api_key = preferred_secret_key
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
@@ -66,11 +66,11 @@ module Spree
       provider.void(response_code, {})
     end
 
-    def create_manual_profile(payment, gateway_options)
-      stripe_customer = Stripe::Customer.create({ name: payment.order.customer_name, email: payment.order.email })
+    def create_manual_profile(gateway_options)
+      stripe_customer = Stripe::Customer.create({ name: gateway_options[:customer_name], email: gateway_options[:email] })
       payment_intent_attrs = { customer: stripe_customer.id }
       # update description if successfully paid
-      payment_intent_attrs[:description] = gateway_options[:order_reference_id] if stripe_payment.present?
+      payment_intent_attrs[:description] = gateway_options[:order_reference_id]
       Stripe::PaymentIntent.update(gateway_options[:payment_intent_id], payment_intent_attrs)
     end
 
