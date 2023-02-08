@@ -37,7 +37,7 @@ module Spree
       provider.authorize(*options_for_purchase_or_auth(money, creditcard, gateway_options))
     end
 
-    def manual_capture(amount, source, gateway_options)
+    def manual_capture(amount, payment, gateway_options)
       # Capture amount
       Stripe.api_key = preferred_secret_key
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
