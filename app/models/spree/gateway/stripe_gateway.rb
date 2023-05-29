@@ -41,10 +41,20 @@ module Spree
       provider.capture(money, response_code, gateway_options)
     end
 
+    # overriden for refund using payment intent id
     def credit(money, creditcard, response_code, gateway_options)
-      provider.refund(money, response_code, {})
+      Stripe.api_key = preferred_secret_key
+      Stripe.stripe_account = gateway_options[:stripe_connected_account]
+      
+      begin
+        response = Stripe::Refund.create({ amount: money, payment_intent: gateway_options[:payment_intent_id] })
+        { success: true, authorization: response.id, message: 'Refunded has been requested.' }
+      rescue => exception
+        Rails.logger.error(exception.message)
+        { success: false, authorization: nil, message: exception.message }
+      end
     end
-
+    
     def void(response_code, creditcard, gateway_options)
       provider.void(response_code, {})
     end
