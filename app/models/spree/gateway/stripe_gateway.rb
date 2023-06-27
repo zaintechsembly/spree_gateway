@@ -60,7 +60,11 @@ module Spree
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
       
       begin
-        response = Stripe::Refund.create({ amount: money, payment_intent: gateway_options[:payment_intent_id] })
+        response = Stripe::Refund.create({ 
+          amount: money,
+          metadata: { "Refund Reason": gateway_options[:refund_reason]},
+          payment_intent: gateway_options[:payment_intent_id]
+        })
         { success: true, authorization: response.id, message: 'Refunded has been requested.' }
       rescue => exception
         Rails.logger.error(exception.message)
