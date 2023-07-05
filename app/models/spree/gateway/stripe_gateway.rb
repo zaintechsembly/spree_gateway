@@ -63,8 +63,7 @@ module Spree
         response = Stripe::Refund.create({ 
           amount: money,
           metadata: { "Refund Reason": gateway_options[:refund_reason], "Order Reference": gateway_options[:order_reference_id] },
-          payment_intent: gateway_options[:payment_intent_id],
-          description: gateway_options[:order_reference_id]
+          payment_intent: gateway_options[:payment_intent_id]
         })
         { success: true, authorization: response.id, message: 'Refunded has been requested.' }
       rescue => exception
