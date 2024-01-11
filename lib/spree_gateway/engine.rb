@@ -4,7 +4,7 @@ module SpreeGateway
 
     config.autoload_paths += %W(#{config.root}/lib)
 
-    initializer "spree.gateway.payment_methods", :after => "spree.register.payment_methods" do |app|
+    config.after_initialize do |app|
       app.config.spree.payment_methods << Spree::Gateway::Eghl
       app.config.spree.payment_methods << Spree::Gateway::PayPalExpress
       app.config.spree.payment_methods << Spree::Gateway::AuthorizeNet
@@ -34,6 +34,7 @@ module SpreeGateway
       app.config.spree.payment_methods << Spree::Gateway::StripeGateway
       app.config.spree.payment_methods << Spree::Gateway::StripeElementsGateway
       app.config.spree.payment_methods << Spree::Gateway::StripeApplePayGateway
+      app.config.spree.payment_methods << Spree::Gateway::StripeAchGateway
       app.config.spree.payment_methods << Spree::Gateway::UsaEpayTransaction
       app.config.spree.payment_methods << Spree::Gateway::Worldpay
     end
@@ -42,8 +43,17 @@ module SpreeGateway
       Dir.glob(File.join(File.dirname(__FILE__), '../../app/**/spree/*_decorator*.rb')) do |c|
         Rails.application.config.cache_classes ? require(c) : load(c)
       end
+      Dir.glob(File.join(File.dirname(__FILE__), '../../app/**/spree_gateway/*_decorator*.rb')) do |c|
+        Rails.application.config.cache_classes ? require(c) : load(c)
+      end
       Dir.glob(File.join(File.dirname(__FILE__), '../../lib/active_merchant/**/*_decorator*.rb')) do |c|
         Rails.application.config.cache_classes ? require(c) : load(c)
+      end
+
+      if self.frontend_available?
+        Dir.glob(File.join(File.dirname(__FILE__), '../../lib/spree_frontend/controllers/spree/*_decorator*.rb')) do |c|
+          Rails.application.config.cache_classes ? require(c) : load(c)
+        end
       end
     end
 
@@ -62,6 +72,7 @@ module SpreeGateway
     paths['app/controllers'] << 'lib/controllers'
 
     if self.frontend_available?
+      paths["app/controllers"] << "lib/spree_frontend/controllers"
       paths["app/views"] << "lib/views/frontend"
     end
 
