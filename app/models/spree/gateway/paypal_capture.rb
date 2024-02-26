@@ -4,20 +4,17 @@ module Spree
     PAYPAL_TEST_API = "https://api-m.sandbox.paypal.com"
     PAYPAL_LIVE_API = "https://api-m.paypal.com"
 
-    def paypal_capture_payment(source)
-      return source_not_found if source.blank?
-      @source = source
-      @auth = authorization
-      capture_order
+    def paypal_capture_payment(payment)
+      @payment = payment
+      @source = @payment&.source
+      return json_response('source not found') if @source.blank?
+
+      authorization && validate_payment ? capture_order : json_response("Something went wrong!")
     end
 
     private
     def paypal_api
       preferred_test_mode ? PAYPAL_TEST_API : PAYPAL_LIVE_API
-    end
-
-    def source_not_found
-      json_response('source not found')
     end
 
     def json_response(message, success = false, response = nil )
@@ -37,6 +34,24 @@ module Spree
       json_response(e.message)
     end
 
+    def validate_payment
+      transaction = fetch_authorization
+      transaction["amount"]["currency_code"] == @payment.order.currency.upcase &&
+        transaction["amount"]["value"].to_f == @payment.order.price_values[:prices][:payable_amount].to_f
+    end
+
+    def fetch_authorization
+      HTTParty.get("#{paypal_api}/v2/payments/authorizations/#{@source.transaction_id}", 
+        headers: {
+          "Content-Type": 'application/json',
+          "Authorization": "Bearer #{ @auth['access_token'] }"
+        }
+      )
+    rescue => exception
+      Rails.logger.error(exception.message)
+      json_response(exception.message)
+    end
+
     def authorization
       basicAuth = Base64.strict_encode64("#{ preferred_client_id }:#{ preferred_client_secret }")
       response = HTTParty.post("#{paypal_api}/v1/oauth2/token/", 
@@ -46,7 +61,8 @@ module Spree
                   },
                   body: "grant_type=client_credentials"
                 )
-      response.parsed_response
+
+      @auth = response.parsed_response
     rescue => e
       Rails.logger.error(e.message)
       json_response(e.message)

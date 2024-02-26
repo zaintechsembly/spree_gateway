@@ -15,7 +15,7 @@ module Spree
     end
 
     def manual_capture(amount, payment, gateway_options)
-      paypal_capture_payment(payment.source)
+      paypal_capture_payment(payment)
     end
 
     def auto_capture?
