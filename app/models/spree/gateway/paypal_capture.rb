@@ -65,7 +65,6 @@ module Spree
                 )
 
       @auth = response.parsed_response
-      return json_response(@auth)[:success]
     rescue => e
       Rails.logger.error(e.message)
       json_response(e.message)
