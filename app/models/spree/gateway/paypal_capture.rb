@@ -36,6 +36,8 @@ module Spree
 
     def validate_payment
       transaction = fetch_authorization
+      return false unless transaction.success?
+
       transaction["amount"]["currency_code"] == @payment.order.currency.upcase &&
         transaction["amount"]["value"].to_f == @payment.order.price_values[:prices][:payable_amount].to_f
     end
@@ -63,6 +65,7 @@ module Spree
                 )
 
       @auth = response.parsed_response
+      return json_response(@auth)[:success]
     rescue => e
       Rails.logger.error(e.message)
       json_response(e.message)
