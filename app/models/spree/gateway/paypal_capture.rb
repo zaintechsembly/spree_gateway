@@ -43,8 +43,6 @@ module Spree
     end
 
     def fetch_authorization
-      paypal_api = "https://api-m.sandbox.paypal.com"
-
       HTTParty.get("#{paypal_api}/v2/payments/authorizations/#{@source.transaction_id}", 
         headers: {
           "Content-Type": 'application/json',
@@ -57,9 +55,7 @@ module Spree
     end
 
     def authorization
-      paypal_api = "https://api-m.sandbox.paypal.com"
-
-      basicAuth = Base64.strict_encode64("#{ pm.preferred_client_id }:#{ pm.preferred_client_secret }")
+      basicAuth = Base64.strict_encode64("#{ preferred_client_id }:#{ preferred_client_secret }")
       response = HTTParty.post("#{paypal_api}/v1/oauth2/token/", 
                   headers: {
                     "Content-Type": 'application/x-www-form-urlencoded',
@@ -69,6 +65,7 @@ module Spree
                 )
 
       @auth = response.parsed_response
+      return json_response(@auth)[:success]
     rescue => e
       Rails.logger.error(e.message)
       json_response(e.message)
