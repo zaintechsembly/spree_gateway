@@ -21,6 +21,10 @@ module Spree
       'stripe'
     end
 
+    def manual_capture?
+      true
+    end
+
     def provider_class
       ActiveMerchant::Billing::StripeGateway
     end
@@ -42,7 +46,11 @@ module Spree
       Stripe.api_key = preferred_secret_key
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
       begin
-        Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
+          # Payment Intent has already been captured for alipay and wechat
+        unless Spree::Payment.class_eval{STRIPE_WALLETS}.include?(payment.source&.name)
+          Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
+        end
+        create_manual_profile(gateway_options)
         { success: true, message: 'Transaction approved' }
       rescue => exception
         Rails.logger.error(exception.message)
