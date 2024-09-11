@@ -13,8 +13,14 @@ module Spree
     preference :ws_user, :string
     preference :ws_password, :string
     preference :api_key, :string
+    preference :adyen_hmac_key, :string
 
     def auto_capture?
+      false
+    end
+
+    # As adyen conferm refund using webhook after creating refund successfully
+    def webhook_refund?
       false
     end
 
@@ -58,7 +64,7 @@ module Spree
 
     # def credit(money, creditcard, response_code, gateway_options)
     def credit(money, response_code, gateway_options)
-      provider.refund(money, response_code, {})
+      provider.refund(money, response_code, refund_options(gateway_options, money))
     end
 
     def void(response_code, gateway_options)
@@ -74,6 +80,13 @@ module Spree
     end
 
     private
+    def refund_options(gateway_options, money)
+      gateway_options.merge!(
+        amount: money,
+        currency: gateway_options[:originator].payment.currency,
+        adyen_hmac_key: preferred_adyen_hmac_key
+      )
+    end
 
     def options
       super.merge(
