@@ -94,8 +94,7 @@ module Spree
     def refund_options(gateway_options, money)
       gateway_options.merge!(
         amount: money,
-        currency: gateway_options[:originator].payment.currency,
-        webhook_configured: webhook_configured?
+        currency: gateway_options[:originator].payment.currency
       )
     end
 
