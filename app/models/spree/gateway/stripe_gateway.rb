@@ -42,7 +42,7 @@ module Spree
       Stripe.api_key = preferred_secret_key
       Stripe.stripe_account = gateway_options[:stripe_connected_account]
       begin
-          Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
+        Stripe::PaymentIntent.capture(gateway_options[:payment_intent_id])
         { success: true, message: 'Transaction approved' }
       rescue => exception
         Rails.logger.error(exception.message)
