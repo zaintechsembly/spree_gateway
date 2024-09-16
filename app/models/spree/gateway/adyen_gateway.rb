@@ -13,7 +13,10 @@ module Spree
     preference :ws_user, :string
     preference :ws_password, :string
     preference :api_key, :string
+    # webhook credentials
     preference :adyen_hmac_key, :string
+    preference :webhook_user, :string
+    preference :webhook_password, :string
 
     def auto_capture?
       false
@@ -21,7 +24,7 @@ module Spree
 
     # As adyen conferm refund using webhook after creating refund successfully
     def webhook_refund?
-      false
+      true
     end
 
     def method_type
@@ -79,12 +82,20 @@ module Spree
       provider.authorize3d(source)
     end
 
+    def webhook_token
+      Base64.strict_encode64("#{preferred_webhook_user}:#{preferred_webhook_password}")
+    end
+
+    def webhook_configured?
+      (preferred_webhook_user.present? && preferred_webhook_password.present?) || preferred_adyen_hmac_key.present?
+    end
+
     private
     def refund_options(gateway_options, money)
       gateway_options.merge!(
         amount: money,
         currency: gateway_options[:originator].payment.currency,
-        adyen_hmac_key: preferred_adyen_hmac_key
+        webhook_configured: webhook_configured?
       )
     end
 
