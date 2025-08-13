@@ -107,6 +107,7 @@ module Spree
     end
 
     def options_for_purchase_or_auth(money, creditcard, gateway_options)
+      first_name, last_name = gateway_options[:customer_name].to_s.strip.split(/\s+/, 2)
       options = { recurring: false }
       options[:order_id] = gateway_options[:order_reference_id]
       options[:currency] = gateway_options[:currency]
@@ -124,6 +125,7 @@ module Spree
                               end
 
       options[:shopperEmail] = gateway_options[:email]
+      options[:shopperName] = { firstName: first_name, lastName: last_name}
       options[:shopperInteraction] = "Ecommerce" # One-time online purchase
       options[:shopperReference] = if gateway_options[:customer_id].present?
                                      gateway_options[:customer_id]
